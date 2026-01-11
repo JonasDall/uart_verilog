@@ -1,20 +1,43 @@
-module uart (
+module uart #(
+  parameter int unsigned clock_rate = 100000000,
+  parameter int unsigned baud_rate = 250000,
+  parameter int unsigned n_bits = 8,
+  parameter int unsigned n_samples = 1
+)(
   //inputs
-  // input clk,  //100MHz
-  input btn,
-  // input rst,
-  output [7:0] led
+  input clk,
+  input data,
+  output bit,
+  output bit_ready,
+  output packet_complete,
+  output packet_successfull
 );
-  logic rst;
+  // Enums
+  typedef enum logic [1:0] { 
+    IDLE,
+    INIT,
+    READ,
+    STOP
+  } state_t;
 
-  counter #(.max(3)) counter_1 (
-    .in(!btn),
+  // Definitions
+  localparam integer unsigned sample_count = (clock_rate / baud_rate) / n_samples;
+  state_t current_state = IDLE, next_state;
+  logic node_a;
+  logic [sample_count-1:0] empty_count;
+
+  counter #(.max(sample_count), .width($clog2(sample_count))) sample_clock (
+    .in(clk),
     .rst(rst),
-    .out(led[0])
+    .out(tick),
+    .count(empty_count)
   );
 
-  assign led[1] = !btn;
-  assign rst = '0;
-  assign led[7:2] = '0;
-  
+  counter #(.max(127), .width(7)) bit_clock (
+    .in(tick),
+    .rst(rst),
+    .out(led[7]),
+    .count(led[6:0])
+  );
+
 endmodule

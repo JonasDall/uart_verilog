@@ -25,6 +25,3 @@ set_io  led[7]  N14 #D9
 # uart
 set_io rx P14
 set_io tx M9
-
-# reset
-set_io btn P8

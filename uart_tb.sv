@@ -7,11 +7,13 @@ module uart_tb;
   logic clk = 0;
   logic rst;
   logic tick;
+  logic [2:0] count;
 
-  counter #(.max(3)) counter_1 (
+  counter #(.max(3), .width(3)) counter_1 (
     .in(clk),
     .rst(rst),
-    .out(tick)
+    .out(tick),
+    .count(count)
   );
 
   initial begin
