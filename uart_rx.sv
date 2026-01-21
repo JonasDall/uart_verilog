@@ -1,16 +1,18 @@
-module uart #(
+/* verilator lint_off WIDTHEXPAND */
+/* verilator lint_off WIDTHTRUNC */
+
+module uart_rx #(
   parameter CLOCK_BAUD_RATIO = 400,
   parameter BIT_WIDTH = 8
 )(
   input wire clk,
   input wire rx,
-  input wire rst,
-  input wire ready,
-  input wire success,
-  output reg [BIT_WIDTH-1:0] byte
+  output reg ready,
+  output reg success,
+  output reg [BIT_WIDTH-1:0] data
 );
 // Wires
-wire start_out, bit_out, rx_sync;
+wire start_out, bit_out, rx_falling;
 
 // Parameters
   parameter IDLE = 2'b00;
@@ -21,7 +23,7 @@ wire start_out, bit_out, rx_sync;
 // Regs
   reg start_rst, bit_rst, rx_ff1, rx_ff2, rx_ff3;
   reg [1:0] current_state = IDLE, next_state = IDLE;
-  reg [$log2(BIT_WIDTH)-1:0] n = 0;
+  reg [$clog2(BIT_WIDTH):0] n = 0;
 
   timer #(.times(CLOCK_BAUD_RATIO/2)) start_delay (
     .in(clk),
@@ -54,7 +56,7 @@ wire start_out, bit_out, rx_sync;
       START: bit_rst <= 1'b1;
       BIT: begin
         if (bit_out) begin
-          byte[n] = rx;
+          data[n] = rx;
           n = n + 1;
         end
       end

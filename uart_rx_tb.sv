@@ -1,36 +1,52 @@
 `default_nettype none
-`timescale 10 ns / 1 ns
+`timescale 1ns/1ps
 
-module uart_tb;
+module uart_rx_tb;
+  // Input
+  logic clk = 1'b0;
+  logic rx = 1'b1;
+  logic ready;
+  logic success;
+  logic [7:0] data;
 
-  // Input.
-  logic clk = 0;
-  logic rst;
-  logic tick;
-  logic [2:0] count;
+  parameter CLOCK_RATE = 100_000_000;
+  parameter BAUD_RATE = 250_000;
 
-  counter #(.max(3), .width(3)) counter_1 (
-    .in(clk),
-    .rst(rst),
-    .out(tick),
-    .count(count)
+  uart_rx #(
+    .CLOCK_BAUD_RATIO(CLOCK_RATE/BAUD_RATE),
+    .BIT_WIDTH(9)
+  ) uart_rx_1 (
+    .clk(clk),
+    .rx(rx),
+    .ready(ready),
+    .success(success),
+    .data(data)
   );
 
   initial begin
     // Dump vars to the output .vcd file
-    $dumpvars(0, uart_tb);
+    $dumpvars(0, uart_rx_tb);
 
-    rst = 1;
-    #1 rst = 0;
-
-    repeat (50) begin
-      $display("%0d", tick);
-      #10 clk = ~clk;
-      $display("%0d", tick);
+    repeat (11000) begin
+      #5 clk = ~clk;
     end
 
     $display("End of simulation");
     $finish;
+  end
+
+  initial begin
+    #8000 rx = 1'b0;
+    #4000 rx = 1'b1;
+    #4000 rx = 1'b1;
+    #4000 rx = 1'b0;
+    #4000 rx = 1'b0;
+    #4000 rx = 1'b1;
+    #4000 rx = 1'b1;
+    #4000 rx = 1'b0;
+    #4000 rx = 1'b0;
+    #4000 rx = 1'b1;
+    #4000 rx = 1'b1;
   end
 
 endmodule
